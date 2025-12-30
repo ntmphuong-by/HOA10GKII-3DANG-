@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HÓA HỌC 10 - XUÂN TRI THỨC (FINAL)</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#d63031;--secondary:#fdcb6e;--accent:#00b894;--text:#2d3436;--bg:#dfe6e9;--correct:#27ae60;--wrong:#c0392b;}
+  body{font-family:'Nunito',sans-serif;background-color:var(--bg);background-image:radial-gradient(var(--secondary) 2px,transparent 2px),radial-gradient(var(--secondary) 2px,transparent 2px);background-size:40px 40px;background-position:0 0,20px 20px;color:var(--text);margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+  /* INTRO */
+  #intro{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#ff7675,#fab1a0);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .logo-intro{font-size:5rem;margin-bottom:20px;animation:float 3s ease-in-out infinite;}
+  .start-btn{padding:20px 50px;font-size:1.8rem;font-weight:900;background:#fff;color:#d63031;border:none;border-radius:50px;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,0.2);transition:0.2s;text-transform:uppercase;animation:pulse 1.5s infinite;}
+  .start-btn:active{transform:scale(0.95);}
+
+  /* MAIN UI */
+  header{background:#fff;padding:15px;box-shadow:0 4px 10px rgba(0,0,0,0.1);display:flex;justify-content:space-between;align-items:center;z-index:100;}
+  .container{flex:1;max-width:900px;width:95%;margin:20px auto;background:#fff;border-radius:20px;box-shadow:0 10px 25px rgba(0,0,0,0.1);padding:20px;overflow-y:auto;position:relative;border-top:6px solid var(--primary);display:none;}
+
+  /* CARDS */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+  .card{border:2px solid #eee;border-radius:15px;padding:20px;text-align:center;cursor:pointer;transition:0.3s;background:#fff;}
+  .card:hover{border-color:var(--primary);transform:translateY(-5px);background:#fff0f0;}
+  .badge{background:var(--primary);color:#fff;padding:4px 10px;border-radius:10px;font-size:0.8rem;font-weight:bold;}
+
+  /* GAMEPLAY */
+  #game{display:none;}
+  .stats{display:flex;justify-content:space-between;font-weight:bold;color:#636e72;margin-bottom:10px;}
+  .bar-bg{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:20px;}
+  .bar-fill{height:100%;width:0;background:var(--primary);transition:width 0.1s linear;}
+  .q-text{font-size:1.3rem;font-weight:700;margin-bottom:20px;line-height:1.4;}
+  .tag{background:var(--secondary);color:#fff;padding:4px 8px;border-radius:4px;font-size:0.8rem;margin-right:8px;vertical-align:text-bottom;font-weight:800;text-shadow:1px 1px 0 rgba(0,0,0,0.2);}
+
+  /* OPTIONS */
+  .opt-btn{width:100%;padding:15px;margin-bottom:10px;border:2px solid #eee;border-radius:10px;background:#fff;text-align:left;font-size:1.1rem;font-weight:600;cursor:pointer;transition:0.2s;}
+  .opt-btn:hover:not(.dis){background:#fff0f0;border-color:var(--primary);}
+  .opt-btn.correct{background:#d4edda;border-color:var(--correct);color:#155724;}
+  .opt-btn.wrong{background:#f8d7da;border-color:var(--wrong);color:#721c24;opacity:0.9;}
+  .dis{pointer-events:none;opacity:0.95;}
+
+  /* TF & SA */
+  .tf-table{width:100%;border-collapse:collapse;margin-bottom:15px;}
+  .tf-table th{background:var(--text);color:#fff;padding:10px;}
+  .tf-table td{border:1px solid #eee;padding:10px;text-align:center;}
+  .tf-table td:first-child{text-align:left;width:70%;font-weight:600;}
+  .row-ok{background:rgba(76,209,55,0.2);}
+  .row-bad{background:rgba(232,65,24,0.2);}
+  input[type=radio]{transform:scale(1.4);cursor:pointer;accent-color:var(--primary);}
+  .sa-inp{width:100%;padding:15px;border:2px solid #ccc;border-radius:10px;font-size:1.1rem;box-sizing:border-box;}
+  .sa-wrap{display:flex;gap:10px;align-items:stretch;margin-bottom:10px;}
+  .sa-send{white-space:nowrap;text-align:center;}
+
+  /* EXPLAIN */
+  .explain{display:none;background:#fff3cd;border:1px solid #ffeeba;border-left:5px solid #ffc107;padding:15px;border-radius:10px;margin-top:15px;color:#856404;animation:up 0.4s;}
+  .auto-msg{text-align:right;font-size:0.9rem;color:#999;margin-top:5px;font-style:italic;opacity:0;transition:0.3s;}
+  .auto-msg.show{opacity:1;}
+
+  /* RESULT */
+  #res{display:none;text-align:center;}
+  .score-circle{width:160px;height:160px;background:var(--secondary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;font-weight:900;margin:20px auto;box-shadow:0 0 20px rgba(253,203,110,0.5);}
+
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+  @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+  @keyframes up{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<audio id="bgm" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/Soundhelix-Song-15.mp3" type="audio/mpeg">
+</audio>
+<audio id="sfx-ok" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="sfx-bad" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+
+<div id="intro">
+  <div class="logo-intro">🌸</div>
+  <h1 style="font-size:2.5rem;color:#fff;margin-bottom:30px;text-shadow:2px 2px 0 rgba(0,0,0,0.1)">
+    HÓA HỌC 10<br>TẾT TRI THỨC
+  </h1>
+  <button class="start-btn" onclick="init()">BẮT ĐẦU NGAY</button>
+</div>
+
+<header>
+  <div style="font-weight:900;font-size:1.4rem;color:var(--primary)"><i class="fas fa-atom"></i> MASTER CHEM</div>
+  <div onclick="toggleM()" style="cursor:pointer;font-size:1.5rem;color:var(--text)" id="mute-btn" title="Bật/Tắt nhạc">
+    <i class="fas fa-volume-mute"></i>
+  </div>
+</header>
+
+<div class="container">
+  <div id="menu">
+    <h2 style="text-align:center;color:var(--primary)">CHỌN CHƯƠNG ÔN TẬP</h2>
+    <div class="grid">
+      <div class="card" onclick="play(4)"><span class="badge">40 CÂU</span><br><i class="fas fa-bolt" style="font-size:2.5rem;color:var(--primary);margin:10px 0"></i><h3>CHƯƠNG IV</h3><small>Oxi hóa - Khử</small></div>
+      <div class="card" onclick="play(5)"><span class="badge">40 CÂU</span><br><i class="fas fa-fire" style="font-size:2.5rem;color:#e17055;margin:10px 0"></i><h3>CHƯƠNG V</h3><small>Năng lượng</small></div>
+      <div class="card" onclick="play(6)"><span class="badge">40 CÂU</span><br><i class="fas fa-stopwatch" style="font-size:2.5rem;color:#0984e3;margin:10px 0"></i><h3>CHƯƠNG VI</h3><small>Tốc độ PƯ</small></div>
+      <div class="card" onclick="play(7)"><span class="badge">40 CÂU</span><br><i class="fas fa-vial" style="font-size:2.5rem;color:#6c5ce7;margin:10px 0"></i><h3>CHƯƠNG VII</h3><small>Halogen</small></div>
+    </div>
+  </div>
+
+  <div id="game">
+    <div class="stats"><span id="q-cnt"></span><span id="s-cnt"></span></div>
+    <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
+
+    <div id="q-area"></div>
+
+    <div class="explain" id="exp-box">
+      <strong><i class="fas fa-check-circle"></i> GIẢI THÍCH CHI TIẾT:</strong><br>
+      <span id="exp-txt"></span>
+    </div>
+    <div class="auto-msg" id="auto-txt">Tự động chuyển câu sau 4s...</div>
+
+    <button class="opt-btn" style="background:#95a5a6;color:#fff;text-align:center;margin-top:20px" onclick="location.reload()">THOÁT</button>
+  </div>
+
+  <div id="res">
+    <h2 style="color:var(--primary);font-size:2rem">KẾT QUẢ</h2>
+    <div class="score-circle" id="fin-score">0</div>
+    <p id="res-msg" style="font-weight:bold;font-size:1.3rem;margin:20px 0"></p>
+    <button class="opt-btn" style="background:var(--primary);color:#fff;text-align:center" onclick="location.reload()">VỀ TRANG CHỦ</button>
+  </div>
+</div>
+
+<script>
+/* =========================
+   DỮ LIỆU CÂU HỎI (GIỮ NGUYÊN)
+========================= */
+const db = {
+  4: [
+    {t:1,q:"Số oxi hóa của Mn trong KMnO4:",o:["+2","+4","+6","+7"],a:3,e:"1+x+4(-2)=0 => x=+7"},
+    {t:1,q:"Chất khử là chất:",o:["Nhận e","Nhường e","Nhận p","Nhường p"],a:1,e:"Chất khử là chất nhường electron."},
+    {t:3,q:"Trong Zn + CuSO4 -> ZnSO4 + Cu, chất khử là ...",a:["zn"],e:"Zn tăng số oxi hóa từ 0 lên +2 nên là chất khử."},
+    {t:2,q:"Về số oxi hóa:",i:["Đơn chất bằng 0","O trong H2O2 là -2","H trong NaH là -1","Tổng số oxi hóa của phân tử trung hòa bằng 0"],a:[1,0,1,1],e:"O trong H2O2 có số oxi hóa -1 (không phải -2)."},
+    {t:1,q:"Cặp không phản ứng:",o:["Fe+HCl","Cu+HCl","Zn+HCl","Al+HCl"],a:1,e:"Cu đứng sau H nên không phản ứng với HCl loãng."},
+    {t:1,q:"Số oxi hóa S trong H2SO4:",o:["+4","+6","-2","0"],a:1,e:"2(+1)+x+4(-2)=0 => x=+6"},
+    {t:1,q:"2Fe+3Cl2->2FeCl3, Cl2 là:",o:["Chất khử","Chất oxh","Môi trường","Base"],a:1,e:"Cl2 nhận e (bị khử) nên là chất oxi hóa."},
+    {t:2,q:"Phản ứng nhiệt nhôm:",i:["Al là chất khử","Fe2O3 là chất oxh","Al bị khử","Fe(+3) nhận e"],a:[1,1,0,1],e:"Al bị oxi hóa (không bị khử)."},
+    {t:3,q:"Số oxi hóa N trong NH4NO3 là -3 và ...",a:["+5"],e:"NH4+ có N=-3, NO3- có N=+5."},
+    {t:1,q:"Chất vừa oxi hóa vừa khử:",o:["SO2","H2SO4","F2","Na"],a:0,e:"S trong SO2 có số oxi hóa +4 (trung gian) nên có thể oxh hoặc khử."},
+    {t:1,q:"Tổng hệ số Cu+2AgNO3->...:",o:["4","5","6","7"],a:2,e:"Cu + 2AgNO3 -> Cu(NO3)2 + 2Ag. Tổng hệ số = 1+2+1+2=6"},
+    {t:1,q:"Ion oxh mạnh nhất:",o:["Zn2+","Cu2+","Ag+","Fe2+"],a:2,e:"Ag+ có tính oxi hóa mạnh nhất trong các ion này."},
+    {t:3,q:"Số oxi hóa C trong CH4 là ...",a:["-4"],e:"x + 4(+1)=0 => x=-4"},
+    {t:1,q:"Fe+H2SO4 đặc nóng tạo:",o:["H2","SO2","H2S","O2"],a:1,e:"H2SO4 đặc nóng oxi hóa Fe tạo SO2."},
+    {t:1,q:"Số oxi hóa P trong H3PO4:",o:["+3","+5","0","-3"],a:1,e:"3(+1)+x+4(-2)=0 => x=+5"},
+    {t:2,q:"Pin Zn-Cu:",i:["Zn cực âm","Cu cực dương","e từ Zn -> Cu","Zn bị khử"],a:[1,1,1,0],e:"Trong pin, Zn bị oxi hóa (không bị khử)."},
+    {t:3,q:"Tổng hệ số Fe+Cl2->FeCl3 là ...",a:["7"],e:"2Fe + 3Cl2 -> 2FeCl3. Tổng hệ số = 2+3+2=7"},
+    {t:1,q:"Hệ số HCl trong K2Cr2O7+HCl:",o:["8","14","16","7"],a:1,e:"Phương trình: K2Cr2O7 + 14HCl -> 2KCl + 2CrCl3 + 3Cl2 + 7H2O"},
+    {t:1,q:"Phản ứng tạo đơn chất:",o:["Fe+HCl","Fe+Cl2","Nhiệt phân KMnO4","Cả 3"],a:3,e:"Fe+HCl tạo H2; Fe+Cl2 dùng Cl2 (đơn chất), KMnO4 nhiệt phân tạo O2 → đều liên quan đơn chất."},
+    {t:1,q:"Số oxi hóa O trong OF2:",o:["-2","-1","+1","+2"],a:3,e:"F luôn -1 ⇒ O phải là +2"},
+    {t:2,q:"Phản ứng cháy:",i:["Luôn tỏa nhiệt","O2 là chất khử","Cần khơi mào","Là phản ứng oxh-khử"],a:[1,0,1,1],e:"Trong phản ứng cháy, O2 là chất oxi hóa (không phải chất khử)."},
+    {t:3,q:"Fe3O4 có số oxh trung bình của Fe là +.../3",a:["8"],e:"Tổng số oxh Fe = 8, trung bình = 8/3"},
+    {t:1,q:"Chất tẩy màu:",o:["SO2","Cl2 ẩm","O3","Cả 3"],a:3,e:"Cả SO2, Cl2 (ẩm) và O3 đều có thể tẩy màu theo cơ chế khác nhau."},
+    {t:1,q:"HNO3 chỉ là axit khi gặp:",o:["Fe(OH)2","FeO","Fe2O3","Fe"],a:2,e:"Fe2O3 là oxit bazơ (số oxh Fe đã max), HNO3 chỉ đóng vai trò axit."},
+    {t:1,q:"Số oxi hóa Cl trong KClO3:",o:["+1","+3","+5","+7"],a:2,e:"(+1)+x+3(-2)=0 => x=+5"},
+    {t:2,q:"2H2S+SO2->3S+2H2O:",i:["H2S chất khử","SO2 chất oxh","S là sản phẩm oxh","S là sản phẩm khử"],a:[1,1,1,1],e:"S tạo ra vừa là sản phẩm oxi hóa vừa là sản phẩm khử (trung gian)."},
+    {t:3,q:"Dung dịch làm quỳ hóa đỏ là ...",a:["axit"],e:"Quỳ tím hóa đỏ trong môi trường axit."},
+    {t:1,q:"Kim loại không tan H2SO4 loãng:",o:["Al","Mg","Cu","Fe"],a:2,e:"Cu đứng sau H nên không tan trong H2SO4 loãng."},
+    {t:1,q:"Khí nâu đỏ:",o:["NO","NO2","Cl2","O3"],a:1,e:"NO2 có màu nâu đỏ."},
+    {t:1,q:"Chất khử mạnh nhất:",o:["Na","Mg","Al","Fe"],a:0,e:"Na có tính khử mạnh nhất trong các kim loại này."},
+    {t:2,q:"Ăn mòn:",i:["Gỉ là oxit/hidroxit sắt","Là quá trình oxh-khử","O2 là chất oxh","Nước là môi trường điện li"],a:[1,1,1,1],e:"Ăn mòn điện hóa cần môi trường điện li (nước, dung dịch...)."},
+    {t:3,q:"Số e N(+5) nhận về N(+2) là ...",a:["3"],e:"(+5) -> (+2): nhận 3e"},
+    {t:1,q:"Cu+HNO3 đặc tạo:",o:["NO","NO2","N2O","N2"],a:1,e:"HNO3 đặc tạo NO2."},
+    {t:1,q:"Số oxi hóa H trong CaH2:",o:["+1","-1","0","+2"],a:1,e:"Trong hiđrua kim loại, H có số oxh -1."},
+    {t:1,q:"Chất KHÔNG là chất oxh:",o:["KMnO4","H2","O2","Cl2"],a:1,e:"H2 chủ yếu thể hiện tính khử."},
+    {t:1,q:"Số oxh nhóm IA:",o:["+1","+2","-1","0"],a:0,e:"Kim loại kiềm luôn có số oxh +1 trong hợp chất."},
+    {t:1,q:"Fe2+ -> Fe3+ + 1e là:",o:["Oxi hóa","Khử","Tự oxh","Điện phân"],a:0,e:"Nhường e là oxi hóa."},
+    {t:1,q:"Cr2O7(2-) số oxh Cr:",o:["+3","+6","+7","+2"],a:1,e:"2x + 7(-2) = -2 => x=+6"},
+    {t:1,q:"Chất chỉ có tính oxh:",o:["F2","Cl2","Br2","I2"],a:0,e:"F2 chỉ nhận e (không có số oxh dương) nên chỉ có tính oxi hóa."},
+    {t:1,q:"H2O2, số oxh O:",o:["-2","-1","0","+1"],a:1,e:"Trong H2O2, O có số oxh -1."}
+  ],
+  5: [
+    {t:1,q:"Phản ứng tỏa nhiệt có ΔrH:",o:[">0","<0","=0","Không xác định"],a:1,e:"Tỏa nhiệt: ΔH < 0."},
+    {t:1,q:"Điều kiện chuẩn (mới) là:",o:["25°C, 1 atm","25°C, 1 bar","0°C, 1 atm","0°C, 1 bar"],a:1,e:"Chuẩn IUPAC: 298 K và 1 bar."},
+    {t:3,q:"ΔfH của đơn chất bền ở điều kiện chuẩn là ...",a:["0"],e:"Quy ước: đơn chất bền có ΔfH = 0."},
+    {t:2,q:"Phản ứng thu nhiệt:",i:["Hệ nhận nhiệt","Môi trường bị lạnh đi","ΔH>0","Luôn tự xảy ra"],a:[1,1,1,0],e:"Thu nhiệt thường cần cung cấp năng lượng nên không luôn tự xảy ra."},
+    {t:1,q:"Kí hiệu nhiệt tạo thành:",o:["ΔrH","ΔfH298","ΔH","Q"],a:1,e:"ΔfH: enthalpy tạo thành."},
+    {t:1,q:"Nhiệt phân CaCO3 là:",o:["Tỏa","Thu","Không đổi","Oxi hóa - khử"],a:1,e:"Nhiệt phân cần nhiệt: thu nhiệt."},
+    {t:3,q:"Đơn vị thường dùng của enthalpy:",a:["kj"],e:"Đơn vị thường dùng: kJ (hoặc kJ/mol)."},
+    {t:1,q:"Tính ΔrH theo ΔfH:",o:["Tổng(ΔfH sp) - Tổng(ΔfH cđ)","Tổng(ΔfH cđ) - Tổng(ΔfH sp)","Cộng tất cả","Chia tỉ lệ"],a:0,e:"Công thức: ΣΔfH(sp) − ΣΔfH(chất đầu)."},
+    {t:1,q:"Tính ΔrH theo năng lượng liên kết Eb:",o:["ΣEb(sp)-ΣEb(cđ)","ΣEb(cđ)-ΣEb(sp)","Cộng tất cả","Nhân hệ số"],a:1,e:"Đứt liên kết (thu) trừ tạo liên kết (tỏa): ΣEb(đứt) − ΣEb(tạo)."},
+    {t:2,q:"Đốt than:",i:["Tỏa nhiệt","ΔH<0","O2 là chất khử","Cần cung cấp nhiệt mồi"],a:[1,1,0,1],e:"O2 là chất oxi hóa."},
+    {t:1,q:"PT tạo thành CO2 chuẩn:",o:["C(graphit)+O2->CO2","CO+1/2O2->CO2","C(kim cương)+O2->CO2","C+2O->CO2"],a:0,e:"Than chì là dạng bền của C ở điều kiện chuẩn."},
+    {t:3,q:"Phá vỡ liên kết là ... nhiệt",a:["thu"],e:"Bẻ gãy liên kết cần hấp thụ năng lượng (thu)."},
+    {t:1,q:"Hình thành liên kết là:",o:["Thu","Tỏa","Không đổi","Không xác định"],a:1,e:"Tạo liên kết giải phóng năng lượng (tỏa)."},
+    {t:1,q:"Chất bền nhất thường có:",o:["ΔfH=-1000","ΔfH=-100","ΔfH=0","ΔfH=+100"],a:0,e:"ΔfH càng âm ⇒ năng lượng thấp ⇒ bền hơn."},
+    {t:1,q:"2H2+O2->2H2O, ΔH=-571. ΔfH(H2O) là:",o:["-571","-285.5","+571","+285.5"],a:1,e:"-571 kJ cho 2 mol H2O ⇒ 1 mol: -285.5 kJ/mol."},
+    {t:2,q:"Hòa tan CO2 (nước có ga) thường:",i:["Nước lạnh dễ tan hơn","Quá trình hòa tan là thu nhiệt","Quá trình hòa tan là tỏa nhiệt","Có thể coi ΔH>0"],a:[1,1,0,1],e:"Nước lạnh giữ CO2 tốt hơn; thường coi là thu nhiệt."},
+    {t:3,q:"ΔfH của Br2(l) là ...",a:["0"],e:"Br2(l) là đơn chất bền ở điều kiện chuẩn ⇒ ΔfH=0."},
+    {t:1,q:"Liên kết C=C so với C-C:",o:["Bền hơn","Yếu hơn","Bằng nhau","Kém bền hơn"],a:0,e:"Liên kết đôi có năng lượng liên kết lớn hơn."},
+    {t:1,q:"H2+Cl2->2HCl (H-H 436, Cl-Cl 243, H-Cl 432), ΔH xấp xỉ:",o:["-185","+185","-92","+92"],a:0,e:"ΔH ≈ (436+243) − 2×432 = -185 kJ."},
+    {t:1,q:"Phản ứng trung hòa axit - bazơ thường:",o:["Thu","Tỏa","Không đổi","Tùy"],a:1,e:"Trung hòa thường tỏa nhiệt."},
+    {t:2,q:"Sơ đồ năng lượng:",i:["Đường năng lượng đi lên là thu nhiệt","Đi xuống là tỏa nhiệt","Khoảng chênh là ΔH","Chất đầu cao hơn sản phẩm là thu"],a:[1,1,1,0],e:"Chất đầu cao hơn sản phẩm ⇒ tỏa nhiệt."},
+    {t:3,q:"Nước đá tan là ... nhiệt",a:["thu"],e:"Nóng chảy cần hấp thụ nhiệt."},
+    {t:1,q:"Nhiệt dung riêng của nước:",o:["4.18 J/g.K","1 J/g.K","100 J/g.K","0.5 J/g.K"],a:0,e:"Giá trị gần đúng: 4.18 J/g.K."},
+    {t:1,q:"Phản ứng thuận tỏa nhiệt thì phản ứng nghịch:",o:["Tỏa","Thu","Không đổi","Dừng"],a:1,e:"Đổi chiều ⇒ đổi dấu ΔH."},
+    {t:1,q:"ΔfH(NO)=+90, NO so với N2:",o:["Bền hơn","Kém bền hơn","Bằng","Không so sánh"],a:1,e:"ΔfH dương ⇒ kém bền hơn dạng đơn chất bền."},
+    {t:1,q:"Gas cháy để:",o:["Nấu ăn","Làm lạnh","Chạy xe","Muối"],a:0,e:"Chủ yếu để tạo nhiệt."},
+    {t:2,q:"Liên kết trong N2:",i:["Ba liên kết","Rất bền","Eb≈945 kJ/mol","Dễ vỡ"],a:[1,1,1,0],e:"N2 rất bền, khó phá vỡ."},
+    {t:3,q:"Hợp chất có ΔfH càng ... càng bền",a:["âm"],e:"ΔfH càng âm ⇒ càng bền."},
+    {t:1,q:"Eb đặc trưng cho:",o:["Độ bền liên kết","Khối lượng","Thể tích","Màu sắc"],a:0,e:"Năng lượng liên kết phản ánh độ bền liên kết."},
+    {t:1,q:"Quang hợp là quá trình:",o:["Tỏa","Thu","Không cần ánh sáng","Tạo CO2"],a:1,e:"Quang hợp thu năng lượng ánh sáng."},
+    {t:1,q:"Công thức tính nhiệt lượng:",o:["Q=mcΔT","nV","PV","mD"],a:0,e:"Nhiệt lượng: Q=mcΔT."},
+    {t:2,q:"Nhiệt phân:",i:["Thu nhiệt","Cần cung cấp nhiệt","ΔH>0","Luôn tự xảy ra"],a:[1,1,1,0],e:"Thường không tự xảy ra nếu không cấp nhiệt."},
+    {t:3,q:"Kí hiệu trạng thái lỏng:",a:["l"],e:"(l) là liquid."},
+    {t:1,q:"Fe+S->FeS, ΔH=-100 là:",o:["Tỏa","Thu","Hòa tan","Bay hơi"],a:0,e:"ΔH âm ⇒ tỏa nhiệt."},
+    {t:1,q:"Dạng chuẩn của Oxi:",o:["O","O2","O3","O4"],a:1,e:"Dạng bền chuẩn: O2(g)."},
+    {t:1,q:"Dạng chuẩn của Carbon:",o:["Kim cương","Than chì","Gỗ","Fullerene"],a:1,e:"Dạng bền chuẩn: than chì."},
+    {t:2,q:"ΔrH phụ thuộc:",i:["Nhiệt độ","Áp suất","Trạng thái các chất","Không phụ thuộc yếu tố nào"],a:[1,1,1,0],e:"ΔrH thay đổi theo điều kiện và trạng thái."},
+    {t:3,q:"Sưởi ấm tay là ... nhiệt",a:["tỏa"],e:"Tỏa nhiệt."},
+    {t:1,q:"ΔfH của O3:",o:["0",">0","<0","Không xác định"],a:1,e:"O3 kém bền hơn O2 nên ΔfH > 0."},
+    {t:1,q:"Phản ứng tỏa nhiệt, năng lượng hệ:",o:["Giảm","Tăng","Không đổi","Bằng 0"],a:0,e:"Tỏa nhiệt: năng lượng/enthalpy của hệ giảm."}
+  ],
+  6: [
+    {t:1,q:"Tốc độ phản ứng là biến thiên:",o:["Khối lượng","Nồng độ","Thể tích","Màu"],a:1,e:"Định nghĩa: v = ΔC/Δt."},
+    {t:1,q:"Đơn vị v (thường dùng):",o:["M/s","mol","s","L"],a:0,e:"Tốc độ phản ứng thường dùng đơn vị M/s (mol/L.s)."},
+    {t:3,q:"Tăng nhiệt độ thì tốc độ phản ứng ...",a:["tăng"],e:"Nhiệt độ tăng ⇒ số va chạm hiệu quả tăng."},
+    {t:2,q:"Yếu tố ảnh hưởng tốc độ:",i:["Nồng độ","Nhiệt độ","Diện tích bề mặt","Màu sắc"],a:[1,1,1,0],e:"Màu sắc không phải yếu tố trực tiếp."},
+    {t:1,q:"Xúc tác:",o:["Tăng v, không bị tiêu hao","Giảm v","Tăng v và bị tiêu hao","Làm phản ứng dừng"],a:0,e:"Xúc tác làm tăng tốc độ và không bị tiêu hao sau phản ứng."},
+    {t:1,q:"Than cháy nhanh hơn khi:",o:["Đập nhỏ","Ngâm nước","Ủ kín","Làm lạnh"],a:0,e:"Tăng diện tích bề mặt tiếp xúc."},
+    {t:1,q:"Hệ số Van't Hoff (γ) là:",o:["v ở 25°C","Số lần tăng v khi tăng 10°C","Ea","k"],a:1,e:"γ: tốc độ tăng lên bao nhiêu lần khi tăng 10°C."},
+    {t:3,q:"Enzyme là xúc tác ...",a:["sinh học"],e:"Enzyme là xúc tác sinh học."},
+    {t:1,q:"Tủ lạnh bảo quản thực phẩm vì:",o:["Nhiệt độ thấp làm giảm tốc độ phản ứng","Diệt khuẩn hoàn toàn","Hút ẩm","Tăng O2"],a:0,e:"Giảm tốc độ phản ứng/vi sinh."},
+    {t:2,q:"Hằng số tốc độ k:",i:["Phụ thuộc nồng độ ban đầu","Phụ thuộc nhiệt độ","Phụ thuộc bản chất phản ứng","Không đổi trong mọi điều kiện"],a:[0,1,1,0],e:"k phụ thuộc T và bản chất, không phụ thuộc nồng độ ban đầu."},
+    {t:1,q:"Pháo nổ là phản ứng:",o:["Rất nhanh","Chậm","Trung bình","Rất chậm"],a:0,e:"Xảy ra cực nhanh."},
+    {t:1,q:"Gỉ sắt là quá trình:",o:["Nhanh","Rất chậm","Tức thời","Vừa"],a:1,e:"Ăn mòn diễn ra chậm."},
+    {t:3,q:"Chất làm giảm tốc độ phản ứng gọi là:",a:["ức chế"],e:"Inhibitor/ức chế."},
+    {t:1,q:"Biểu thức v=k[A][B] ứng với phản ứng:",o:["A+B->SP","2A->SP","A->SP","A+2B->SP"],a:0,e:"Bậc 1 theo A và bậc 1 theo B."},
+    {t:1,q:"Áp suất ảnh hưởng rõ nhất với phản ứng có chất:",o:["Rắn","Lỏng","Khí","Dung dịch loãng"],a:2,e:"Tăng áp suất làm tăng nồng độ khí."},
+    {t:2,q:"N2+3H2->2NH3, quan hệ tốc độ:",i:["v(H2)=3v(N2)","v(NH3)=2v(N2)","v(N2)>v(H2)","Khi cân bằng phản ứng dừng"],a:[1,1,0,0],e:"Tốc độ biến thiên tỉ lệ hệ số; cân bằng không phải dừng phản ứng."},
+    {t:1,q:"γ=3, tăng 20°C thì v tăng:",o:["3","6","9","27"],a:2,e:"Tăng 20°C ⇒ 2 lần 10°C ⇒ v × γ^2 = 9."},
+    {t:1,q:"Nồi áp suất làm thức ăn chín nhanh vì:",o:["Tăng nhiệt độ sôi","Giảm nhiệt độ","Có xúc tác","Tăng diện tích"],a:0,e:"Áp suất tăng ⇒ nhiệt độ sôi tăng ⇒ phản ứng nhanh hơn."},
+    {t:3,q:"Va chạm hiệu quả lớn thì tốc độ ...",a:["lớn"],e:"Tốc độ tỉ lệ với số va chạm hiệu quả."},
+    {t:1,q:"Xúc tác tổng hợp NH3 (Haber) là:",o:["Fe","Cu","Pt","Ni"],a:0,e:"Xúc tác: Fe."},
+    {t:1,q:"PTN điều chế O2 thường dùng:",o:["MnO2","NaCl","Fe","HCl"],a:0,e:"MnO2 (xúc tác phân hủy H2O2/KClO3...)."},
+    {t:1,q:"Ôi thiu mùa hè nhanh vì:",o:["Nhiệt độ cao","Ánh sáng","Độ ẩm","Gió"],a:0,e:"Nhiệt độ cao làm tăng tốc độ phản ứng."},
+    {t:2,q:"Va chạm:",i:["Mọi va chạm đều gây phản ứng","Chỉ va chạm hiệu quả mới gây phản ứng","Tăng nồng độ làm tăng va chạm","Tăng nhiệt độ làm giảm va chạm"],a:[0,1,1,0],e:"Tăng nhiệt độ làm tăng va chạm."},
+    {t:1,q:"Tốc độ trung bình:",o:["ΔC/Δt","Δm","ΔV","Δn"],a:0,e:"v_tb = ΔC/Δt."},
+    {t:1,q:"Có thể đo tốc độ phản ứng bằng:",o:["Thể tích khí","pH","Màu","Tất cả"],a:3,e:"Tùy phản ứng có thể dùng nhiều đại lượng."},
+    {t:3,q:"Kí hiệu tốc độ phản ứng:",a:["v"],e:"Kí hiệu: v."},
+    {t:1,q:"Phản ứng dị thể phụ thuộc nhiều vào:",o:["Bề mặt tiếp xúc","Trong lòng","Khí","Toàn bộ"],a:0,e:"Diện tích bề mặt tiếp xúc."},
+    {t:1,q:"Bột phản ứng nhanh hơn cục vì:",o:["Diện tích","Khối lượng","Chất lượng","Mềm"],a:0,e:"Diện tích bề mặt lớn hơn."},
+    {t:1,q:"Bậc phản ứng của v=k[A]^2[B] là:",o:["1","2","3","0"],a:2,e:"Bậc = 2+1 = 3."},
+    {t:2,q:"Năng lượng hoạt hóa Ea:",i:["Ea nhỏ ⇒ v lớn","Ea lớn ⇒ v lớn","Xúc tác làm giảm Ea","Thay đổi nhiệt độ làm đổi Ea"],a:[1,0,1,0],e:"Xúc tác giảm Ea; Ea không phụ thuộc nhiệt độ."},
+    {t:1,q:"Quạt lò than giúp:",o:["Cấp O2","Làm mát","Làm sạch tro","Tạo áp suất"],a:0,e:"Tăng nồng độ O2 ⇒ phản ứng cháy nhanh."},
+    {t:3,q:"Tốc độ tại một thời điểm gọi là tốc độ ...",a:["tức"],e:"Tốc độ tức thời."},
+    {t:1,q:"k bằng v khi:",o:["Nồng độ các chất tham gia đều bằng 1M","t=0","t→∞","T=0"],a:0,e:"Theo định nghĩa trong biểu thức tốc độ."},
+    {t:1,q:"Phản ứng trung hòa thường:",o:["Nhanh","Chậm","Rất chậm","Không xảy ra"],a:0,e:"Phản ứng ion xảy ra nhanh."},
+    {t:1,q:"Giá trị γ thường nằm trong khoảng:",o:["2–4","1–2","5–10","0–1"],a:0,e:"Thường 2–4."},
+    {t:2,q:"Nồng độ:",i:["Áp dụng cho khí/lỏng/dung dịch","Rắn tinh khiết thường không đưa vào biểu thức tốc độ","Dung dịch càng đặc thường phản ứng nhanh hơn","Dung dịch loãng phản ứng nhanh hơn"],a:[1,1,1,0],e:"Rắn tinh khiết coi nồng độ không đổi; loãng thường chậm."},
+    {t:1,q:"Xúc tác trong cơ thể:",o:["Enzyme","Hormone","Vitamin","Lipid"],a:0,e:"Enzyme."},
+    {t:3,q:"Bình O2 cho bệnh nhân làm tăng ...",a:["nồng độ"],e:"Tăng nồng độ/áp suất riêng phần O2."},
+    {t:1,q:"H2+I2⇌2HI là phản ứng:",o:["Thuận nghịch","Một chiều","Phân hủy","Thế"],a:0,e:"Có chiều thuận và nghịch."},
+    {t:1,q:"Yếu tố làm thay đổi k:",o:["Nhiệt độ","Nồng độ","Áp suất","Thể tích"],a:0,e:"k phụ thuộc T và bản chất phản ứng."}
+  ],
+  7: [
+    {t:1,q:"Nhóm Halogen gồm:",o:["F,Cl,Br,I","O,S","N,P","Li,Na"],a:0,e:"Halogen thuộc nhóm VIIA: F, Cl, Br, I."},
+    {t:1,q:"Nguyên tố có độ âm điện lớn nhất:",o:["F","Cl","Br","I"],a:0,e:"Flo có độ âm điện lớn nhất."},
+    {t:3,q:"Bromine (Br2) ở điều kiện thường là chất lỏng màu ...",a:["nâu đỏ"],e:"Br2 lỏng màu nâu đỏ."},
+    {t:1,q:"Màu của khí Cl2:",o:["Vàng lục","Lục nhạt","Nâu","Tím"],a:0,e:"Cl2 có màu vàng lục."},
+    {t:2,q:"Tính chất biến đổi trong nhóm:",i:["Tính oxi hóa giảm từ F2 → I2","Bán kính nguyên tử tăng","Độ âm điện giảm","Tính khử của ion X- giảm từ F- → I-"],a:[1,1,1,0],e:"Tính khử của X- tăng từ F- → I-."},
+    {t:1,q:"Chất thăng hoa:",o:["I2","Br2","Cl2","F2"],a:0,e:"I2 thăng hoa cho hơi tím."},
+    {t:3,q:"HF ăn mòn ...",a:["thủy tinh"],e:"HF ăn mòn SiO2 trong thủy tinh."},
+    {t:1,q:"AgCl có màu:",o:["Trắng","Vàng nhạt","Vàng đậm","Đen"],a:0,e:"AgCl kết tủa trắng."},
+    {t:1,q:"AgBr có màu:",o:["Vàng nhạt","Trắng","Vàng đậm","Đen"],a:0,e:"AgBr vàng nhạt."},
+    {t:1,q:"AgI có màu:",o:["Vàng đậm","Vàng nhạt","Trắng","Đen"],a:0,e:"AgI vàng đậm."},
+    {t:1,q:"Muối bạc tan trong nước:",o:["AgF","AgCl","AgBr","AgI"],a:0,e:"AgF tan."},
+    {t:2,q:"Phản ứng halogen với H2:",i:["F2 nổ trong tối","Cl2 cần ánh sáng","Br2 cần đun nóng","I2 phản ứng hoàn toàn"],a:[1,1,1,0],e:"I2 phản ứng thuận nghịch, không hoàn toàn."},
+    {t:3,q:"Nước Javel gồm NaCl và ...",a:["naclo"],e:"NaClO (hypoclorit) là thành phần hoạt tính."},
+    {t:1,q:"Clorua vôi thường viết:",o:["CaOCl2","Ca(OCl)2","CaCl2","CaO"],a:0,e:"Thực tế là hỗn hợp, thường biểu diễn CaOCl2."},
+    {t:1,q:"Hồ tinh bột cho màu xanh tím với:",o:["I2","Br2","Cl2","F2"],a:0,e:"I2 tạo phức xanh tím với hồ tinh bột."},
+    {t:1,q:"Axit yếu nhất trong HX:",o:["HF","HCl","HBr","HI"],a:0,e:"HF yếu do liên kết H–F bền."},
+    {t:1,q:"Axit mạnh nhất trong HX:",o:["HI","HBr","HCl","HF"],a:0,e:"HI mạnh nhất."},
+    {t:2,q:"Ứng dụng:",i:["Clo khử trùng","Flo dùng trong vật liệu chống dính","Iot phòng bướu cổ","Brom dùng trong dược phẩm"],a:[1,1,1,1],e:"Đúng."},
+    {t:3,q:"Halogen có số oxh -1 duy nhất là ...",a:["flo"],e:"Flo chỉ có số oxh -1 trong hợp chất."},
+    {t:1,q:"Trong nước biển, halogen nhiều nhất là:",o:["Cl","Br","I","F"],a:0,e:"Chủ yếu là ion Cl- (muối NaCl)."},
+    {t:1,q:"Điều chế Cl2 trong PTN:",o:["HCl+MnO2","NaCl","F2","NaOH"],a:0,e:"MnO2 oxi hóa HCl tạo Cl2."},
+    {t:1,q:"Sản xuất Cl2 công nghiệp:",o:["Điện phân dung dịch NaCl có màng ngăn","Nhiệt phân NaCl","Chưng cất","Nung CaCl2"],a:0,e:"Điện phân dung dịch NaCl có màng ngăn."},
+    {t:1,q:"Loại bỏ Cl2 dư thường dùng:",o:["NaOH","Nước","Axit","Cồn"],a:0,e:"Hấp thụ bằng NaOH."},
+    {t:2,q:"Phản ứng đẩy halogen:",i:["Cl2 đẩy Br2 khỏi muối bromua","Br2 đẩy I2 khỏi muối iodua","F2 đẩy Cl2 khỏi muối clorua","Cl2 đẩy I2 khỏi muối iodua"],a:[1,1,0,1],e:"F2 rất mạnh nhưng thường phản ứng mãnh liệt với nước trong dung dịch."},
+    {t:3,q:"HCl đặc bốc khói màu ...",a:["trắng"],e:"Khói trắng do HCl gặp hơi nước tạo sương mù axit."},
+    {t:1,q:"Thuốc thử nhận biết ion halogenua:",o:["AgNO3","BaCl2","H2SO4","NaOH"],a:0,e:"AgNO3 tạo kết tủa AgX."},
+    {t:1,q:"Tráng phim ảnh dùng:",o:["AgBr","AgCl","AgI","AgF"],a:0,e:"AgBr nhạy sáng."},
+    {t:1,q:"Teflon liên quan nguyên tố:",o:["F","Cl","Br","I"],a:0,e:"Teflon: polytetrafluoroethylene (PTFE)."},
+    {t:1,q:"Cl2+NaOH (lạnh) tạo:",o:["Nước Javel","Clorua vôi","HCl","Không phản ứng"],a:0,e:"NaCl + NaClO (Javel)."},
+    {t:1,q:"Cl2+Ca(OH)2 (bột) tạo:",o:["Clorua vôi","Javel","CaCl2","CaO"],a:0,e:"Tạo clorua vôi (biểu diễn CaOCl2)."},
+    {t:2,q:"Tính chất halogen:",i:["Phi kim","Tính oxi hóa mạnh","Tác dụng với kim loại","Tác dụng với H2"],a:[1,1,1,1],e:"Đúng."},
+    {t:3,q:"Lớp ngoài cùng của halogen có ... e",a:["7"],e:"Cấu hình ns2np5 → 7 e hóa trị."},
+    {t:1,q:"Iod (I2) tan tốt trong:",o:["Dung môi hữu cơ","Nước","Axit","Bazơ"],a:0,e:"I2 tan trong cồn, benzen..."},
+    {t:1,q:"HCl thể hiện tính khử khi gặp:",o:["MnO2","NaOH","Fe","CaCO3"],a:0,e:"Gặp chất oxi hóa mạnh (MnO2) tạo Cl2."},
+    {t:1,q:"HCl thể hiện tính axit khi gặp:",o:["NaOH","MnO2","KMnO4","O2"],a:0,e:"Trung hòa với bazơ NaOH."},
+    {t:1,q:"HCl tan trong nước tạo:",o:["Axit clohidric","Nước clo","Khí","Muối"],a:0,e:"Dung dịch axit clohidric."},
+    {t:2,q:"Về F2:",i:["Oxi hóa nước","Phản ứng mạnh với H2","Dùng chế tạo hợp chất trong nha khoa/vật liệu","Điều chế bằng điện phân"],a:[1,1,1,1],e:"F2 rất mạnh và được điều chế bằng điện phân muối nóng chảy."},
+    {t:1,q:"Br2+Al tạo:",o:["AlBr3","AlBr2","AlBr","Không phản ứng"],a:0,e:"Al hóa trị 3 → AlBr3."},
+    {t:3,q:"Muối ăn là ...",a:["nacl"],e:"Muối ăn: NaCl."},
+    {t:1,q:"Thiếu iot nên dùng:",o:["Muối i-ốt","Iot","Cồn","Nước biển"],a:0,e:"Bổ sung KI/KIO3 qua muối i-ốt."}
+  ]
+};
+
+/* =========================
+   ENGINE (SỬA LỖI NÚT BỊ KHÓA)
+   - Đồng bộ ID/CLASS theo HTML hiện tại
+   - Chỉ khóa vùng trả lời (không khóa header/menu/nút thoát)
+========================= */
+let currentData = [];
+let currentIdx = 0;
+let score = 0;
+let autoTimer = null;
+let musicOn = false;
+
+const bgm = document.getElementById('bgm');
+
+function init(){
+  // 1) Mở giao diện chính
+  document.getElementById('intro').style.display = 'none';
+  document.querySelector('.container').style.display = 'block';
+
+  // 2) Bật nhạc (nếu bị chặn vẫn cho người dùng bật bằng nút loa)
+  try{
+    bgm.volume = 0.5;
+    const p = bgm.play();
+    if(p && typeof p.then === 'function'){
+      p.then(()=>{ musicOn = true; updateMuteIcon(); })
+       .catch(()=>{ musicOn = false; updateMuteIcon(); });
+    }else{
+      musicOn = !bgm.paused;
+      updateMuteIcon();
+    }
+  }catch(e){
+    musicOn = false;
+    updateMuteIcon();
+  }
+}
+
+function toggleM(){
+  try{
+    if(musicOn){
+      bgm.pause();
+      musicOn = false;
+    }else{
+      bgm.play();
+      musicOn = true;
+    }
+  }catch(e){
+    musicOn = false;
+  }
+  updateMuteIcon();
+}
+
+function updateMuteIcon(){
+  const btn = document.getElementById('mute-btn');
+  btn.innerHTML = musicOn ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+}
+
+function play(chap){
+  // Shuffle & Pick 40
+  currentData = [...db[chap]].sort(()=>Math.random()-0.5);
+  while(currentData.length < 40) currentData = currentData.concat(currentData);
+  currentData = currentData.slice(0,40);
+
+  currentIdx = 0;
+  score = 0;
+
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('res').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+
+  renderQuestion();
+}
+
+function setProgress(pct){
+  const bar = document.getElementById('bar');
+  bar.style.width = pct + '%';
+}
+
+function resetExplain(){
+  document.getElementById('exp-box').style.display = 'none';
+  document.getElementById('exp-txt').innerHTML = '';
+  document.getElementById('auto-txt').classList.remove('show');
+}
+
+function renderQuestion(){
+  clearTimeout(autoTimer);
+  resetExplain();
+  setProgress(0);
+
+  if(currentIdx >= currentData.length){
+    return endGame();
+  }
+
+  const q = currentData[currentIdx];
+  document.getElementById('q-cnt').textContent = `Câu ${currentIdx+1}/40`;
+  document.getElementById('s-cnt').textContent = `Điểm: ${score}`;
+
+  const typeName = (q.t===1) ? 'TRẮC NGHIỆM' : (q.t===2 ? 'ĐÚNG / SAI' : 'ĐIỀN TỪ');
+
+  let html = `<div class="q-text"><span class="tag">${typeName}</span>${q.q}</div>`;
+
+  if(q.t===1){
+    q.o.forEach((opt,i)=>{
+      html += `<button class="opt-btn" data-ans="mc" data-i="${i}"><b>${String.fromCharCode(65+i)}.</b> ${opt}</button>`;
+    });
+  }else if(q.t===2){
+    html += `<table class="tf-table">
+      <tr><th>Nội dung</th><th>Đ</th><th>S</th></tr>`;
+    q.i.forEach((it,i)=>{
+      html += `<tr id="tf-${i}">
+        <td>${it}</td>
+        <td><input type="radio" name="tf${i}" value="1"></td>
+        <td><input type="radio" name="tf${i}" value="0"></td>
+      </tr>`;
+    });
+    html += `</table>
+      <button class="opt-btn" style="text-align:center;background:var(--accent);color:#fff" id="tf-submit">CHẤM ĐÚNG/SAI</button>`;
+  }else{
+    html += `<div class="sa-wrap">
+      <input type="text" class="sa-inp" id="sa-inp" placeholder="Nhập đáp án...">
+      <button class="opt-btn sa-send" style="background:var(--accent);color:#fff" id="sa-submit">GỬI</button>
+    </div>`;
+  }
+
+  const area = document.getElementById('q-area');
+  area.innerHTML = html;
+
+  // Gắn sự kiện (tránh lỗi “nút bị khóa” do disableAll sai phạm vi)
+  if(q.t===1){
+    area.querySelectorAll('button[data-ans="mc"]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const idx = Number(btn.getAttribute('data-i'));
+        chkMC(btn, idx);
+      });
+    });
+  }else if(q.t===2){
+    document.getElementById('tf-submit').addEventListener('click', chkTF);
+  }else{
+    const inp = document.getElementById('sa-inp');
+    const sub = document.getElementById('sa-submit');
+    sub.addEventListener('click', chkSA);
+    inp.addEventListener('keydown', (e)=>{ if(e.key==='Enter') chkSA(); });
+    setTimeout(()=>inp.focus(),100);
+  }
+}
+
+function disableAnswerControls(){
+  // CHỈ khóa phần trả lời trong #q-area (không khóa nút THOÁT, header, menu)
+  const area = document.getElementById('q-area');
+  area.querySelectorAll('button,opt-btn,input').forEach(()=>{}); // noop
+
+  area.querySelectorAll('button').forEach(b=>{
+    b.disabled = true;
+    b.classList.add('dis');
+  });
+  area.querySelectorAll('input').forEach(i=>{
+    i.disabled = true;
+  });
+}
+
+function animateAutoNext(){
+  document.getElementById('auto-txt').classList.add('show');
+
+  // thanh tiến trình 4s
+  setProgress(0);
+  const bar = document.getElementById('bar');
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  void bar.offsetWidth;
+  bar.style.transition = 'width 4s linear';
+  bar.style.width = '100%';
+
+  autoTimer = setTimeout(()=>{
+    currentIdx++;
+    renderQuestion();
+  }, 4000);
+}
+
+function showExplain(isCorrect, exp){
+  // cập nhật điểm + âm thanh
+  if(isCorrect){
+    score++;
+    try{ document.getElementById('sfx-ok').currentTime = 0; document.getElementById('sfx-ok').play(); }catch(e){}
+  }else{
+    try{ document.getElementById('sfx-bad').currentTime = 0; document.getElementById('sfx-bad').play(); }catch(e){}
+  }
+  document.getElementById('s-cnt').textContent = `Điểm: ${score}`;
+
+  document.getElementById('exp-txt').innerHTML = exp || '';
+  document.getElementById('exp-box').style.display = 'block';
+  animateAutoNext();
+}
+
+function chkMC(btn, idx){
+  clearTimeout(autoTimer);
+  const q = currentData[currentIdx];
+
+  // khóa đáp án
+  disableAnswerControls();
+
+  // tô màu đúng/sai
+  const buttons = document.querySelectorAll('#q-area button[data-ans="mc"]');
+  if(idx === q.a){
+    btn.classList.add('correct');
+    showExplain(true, q.e);
+  }else{
+    btn.classList.add('wrong');
+    if(buttons[q.a]) buttons[q.a].classList.add('correct');
+    showExplain(false, q.e);
+  }
+}
+
+function chkTF(){
+  clearTimeout(autoTimer);
+  const q = currentData[currentIdx];
+
+  const ans = [];
+  let cnt = 0;
+
+  for(let i=0;i<q.i.length;i++){
+    const radios = document.getElementsByName(`tf${i}`);
+    let v;
+    if(radios[0].checked) v = 1;
+    else if(radios[1].checked) v = 0;
+
+    ans[i] = v;
+    if(v !== undefined) cnt++;
+  }
+
+  // chưa chọn đủ thì không chấm (không khóa)
+  if(cnt !== q.i.length) return;
+
+  disableAnswerControls();
+
+  let all = true;
+  for(let i=0;i<q.i.length;i++){
+    const row = document.getElementById(`tf-${i}`);
+    if(ans[i] === q.a[i]){
+      row.classList.add('row-ok');
+      row.cells[0].innerHTML += ` <i class="fas fa-check" style="color:var(--correct)"></i>`;
+    }else{
+      all = false;
+      row.classList.add('row-bad');
+      row.cells[0].innerHTML += ` <span style="color:var(--wrong);font-size:0.85rem"> (Đ/A: ${q.a[i] ? 'Đ' : 'S'})</span>`;
+    }
+  }
+
+  showExplain(all, q.e);
+}
+
+function chkSA(){
+  clearTimeout(autoTimer);
+  const q = currentData[currentIdx];
+
+  const inp = document.getElementById('sa-inp');
+  if(!inp) return;
+
+  const val = inp.value.trim().toLowerCase();
+  if(!val) return;
+
+  disableAnswerControls();
+
+  const okList = Array.isArray(q.a) ? q.a : [q.a];
+  const isOk = okList.map(x=>String(x).trim().toLowerCase()).includes(val);
+
+  if(isOk){
+    inp.style.background = '#d4edda';
+    inp.style.borderColor = 'var(--correct)';
+    showExplain(true, q.e);
+  }else{
+    inp.style.background = '#f8d7da';
+    inp.style.borderColor = 'var(--wrong)';
+    inp.value = `${inp.value}  -> Đ/A: ${String(okList[0]).toUpperCase()}`;
+    showExplain(false, q.e);
+  }
+}
+
+function endGame(){
+  document.getElementById('game').style.display = 'none';
+  document.getElementById('res').style.display = 'block';
+
+  const fin = document.getElementById('fin-score');
+  fin.textContent = '0';
+
+  let s = 0;
+  const target = score;
+  const timer = setInterval(()=>{
+    fin.textContent = s;
+    if(s >= target) clearInterval(timer);
+    s++;
+  }, 30);
+
+  const msg = document.getElementById('res-msg');
+  const p = (score/40)*100;
+
+  if(p >= 90){
+    msg.innerText = "XUẤT SẮC! BẠN LÀ CHUYÊN GIA!";
+    msg.style.color = "var(--correct)";
+  }else if(p >= 70){
+    msg.innerText = "GIỎI LẮM! KIẾN THỨC VỮNG.";
+    msg.style.color = "#0984e3";
+  }else if(p >= 50){
+    msg.innerText = "KHÁ TỐT! CỐ GẮNG THÊM NHÉ.";
+    msg.style.color = "var(--secondary)";
+  }else{
+    msg.innerText = "CẦN ÔN TẬP LẠI.";
+    msg.style.color = "var(--wrong)";
+  }
+}
+</script>
+</body>
+</html>
